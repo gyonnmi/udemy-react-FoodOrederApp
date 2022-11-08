@@ -6,12 +6,33 @@ const defaultCartState = {
   totalAmount: 0,
 };
 
+// 복잡한 리듀서 로직 ***
 const cartReducer = (state, action) => {
   if (action.type === 'ADD_ITEM') {
-    const updatedItems = state.items.concat(action.item);
     const updatedTotalAmount =
       // 기존 값 + 새로 들어온 아이템 가격 * 수량
       state.totalAmount + action.item.price * action.item.amount;
+
+    // 장바구니 중복 항목 검사
+    const existingCartItemIndex = state.items.findIndex(
+      (item) => item.id === action.item.id
+    );
+    const existingCartItem = state.items[existingCartItemIndex];
+    let updatedItems;
+
+    if (existingCartItem) {
+      // 배열에 기존 항목이 있다면
+      const updatedItem = {
+        ...existingCartItem,
+        amount: existingCartItem.amount + action.item.amount,
+      };
+      updatedItems = [...state.items];
+      updatedItems[existingCartItemIndex] = updatedItem;
+    } else {
+      // 새로운 항목이 배열에 처음으로 추가된다면
+      updatedItems = state.items.concat(action.item);
+    }
+
     return {
       items: updatedItems,
       totalAmount: updatedTotalAmount,
